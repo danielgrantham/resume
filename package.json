@@ -1,0 +1,21 @@
+{
+  "name": "grantham-terminal",
+  "module": "src/server/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch src/server/index.ts",
+    "build": "bun build src/client/main.ts --outdir dist --minify && cp src/client/styles/main.css dist/main.css",
+    "start": "bun run src/server/index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "hono": "^4.12.4",
+    "resend": "^6.9.3"
+  }
+}

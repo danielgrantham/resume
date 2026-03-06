@@ -1,0 +1,6 @@
+Hi, I'm **Daniel Grantham** — a software developer working in the media and entertainment industry. I'm self-motivated with a strong focus on simplicity and pragmatism. I like to build systems that are self explanatory, human and machine readable, and serve their intended uses as intuitively and sustainably as possible. I excel at communication and building relationships with a warm and genuine personality. I like people, and it shows in the way I work. I’m continuously learning, highly task-driven, and always aiming to give my best work while creating an environment and culture that my peers are proud to be a part of.
+
+I'm currently working as a Senior Software Developer at [Warner Bros. Discovery](https://www.warnerbros.com/discovery) where I'm responsible for building and maintaining the internal tools and platforms that power the company's content and distribution.
+
+I've been in software development since 2018, but I've been working in the media and entertainment industry since 2007 when I worked in broadcast control rooms.
+
