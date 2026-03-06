@@ -26,7 +26,7 @@ export async function sendHireNotification(
 
   try {
     await client.emails.send({
-      from: "Grantham Resume Website <api@resend.dev>",
+      from: "Grantham Resume Website <daniel@dgrantham.com>",
       to: notificationEmail,
       subject: `New Hire Inquiry from ${company}`,
       text: [
