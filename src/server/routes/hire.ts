@@ -30,7 +30,7 @@ hire.post("/", async (c) => {
     const isLocal = ip === "127.0.0.1" || ip === "::1" || ip.startsWith("localhost:");
     if (!isLocal) {
       const recentCount = countRecentInquiries(ip);
-      if (recentCount >= 3) {
+      if (recentCount >= 10) {
         return c.json({ error: "Rate limit exceeded" }, 429);
       }
     }
