@@ -38,6 +38,7 @@ export class InputHandler {
     this.onCommand = opts.onCommand;
 
     this.hiddenInput.addEventListener("keydown", this.handleKeyDown);
+    this.hiddenInput.addEventListener("input", this.handleInput);
   }
 
   focus(): void {
@@ -149,6 +150,19 @@ export class InputHandler {
       this.currentInput += e.key;
       this.render();
       return;
+    }
+  };
+
+  private handleInput = (): void => {
+    if (this.renderer.isStreaming) {
+      this.hiddenInput.value = "";
+      return;
+    }
+    const value = this.hiddenInput.value;
+    if (value) {
+      this.currentInput += value;
+      this.hiddenInput.value = "";
+      this.render();
     }
   };
 
