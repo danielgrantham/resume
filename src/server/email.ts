@@ -11,7 +11,7 @@ function getClient(): Resend | null {
   return resend;
 }
 
-const notificationEmail = process.env["NOTIFICATION_EMAIL"] ?? "daniel@example.com";
+const notificationEmail = process.env["NOTIFICATION_EMAIL"] ?? "daniel@dgrantham.com";
 
 export async function sendHireNotification(
   company: string,
