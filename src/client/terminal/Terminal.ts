@@ -79,6 +79,7 @@ export class Terminal {
       renderer: this.renderer,
       fs: this.fs,
       onCommand: (raw) => this.executeCommand(raw),
+      onScroll: () => this.scrollToBottom(),
     });
 
     this.terminalEl.addEventListener("click", () => this.inputHandler.focus());

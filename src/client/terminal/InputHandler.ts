@@ -14,6 +14,7 @@ export class InputHandler {
   private renderer: OutputRenderer;
   private fs: FileSystem;
   private onCommand: CommandExecutor;
+  private onScroll: () => void;
   private currentInput = "";
 
   private promptHandler: ((value: string) => void) | null = null;
@@ -27,6 +28,7 @@ export class InputHandler {
     renderer: OutputRenderer;
     fs: FileSystem;
     onCommand: CommandExecutor;
+    onScroll: () => void;
   }) {
     this.inputEl = opts.inputEl;
     this.cursorEl = opts.cursorEl;
@@ -36,6 +38,7 @@ export class InputHandler {
     this.renderer = opts.renderer;
     this.fs = opts.fs;
     this.onCommand = opts.onCommand;
+    this.onScroll = opts.onScroll;
 
     this.hiddenInput.addEventListener("keydown", this.handleKeyDown);
     this.hiddenInput.addEventListener("input", this.handleInput);
@@ -71,6 +74,8 @@ export class InputHandler {
       e.preventDefault();
       return;
     }
+
+    this.onScroll();
 
     if (e.key === "Enter") {
       e.preventDefault();
@@ -158,6 +163,7 @@ export class InputHandler {
       this.hiddenInput.value = "";
       return;
     }
+    this.onScroll();
     const value = this.hiddenInput.value;
     if (value) {
       this.currentInput += value;

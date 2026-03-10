@@ -33,12 +33,27 @@ function boot(): void {
   registry.register("history", "Show command history", createHistory());
   registry.register("help", "List available commands", createHelp(registry));
   registry.register("man", "Display manual page", createMan(registry));
-  registry.register("rm", "Remove files", createRm());
-  registry.register("grantham", "Portfolio commands (try --help)", createGrantham(fs));
-  registry.register("sudo", "Superuser command", async ({ terminal: t }) => {
-    t.printError("bash: sudo: command not found");
+  registry.register("rm", "Remove files", createRm(), true);
+  const grantham = createGrantham(fs);
+  registry.register("grantham", "Portfolio commands (try --help)", grantham);
+  registry.register("about", "Alias for grantham --about", async (ctx) => {
+    await grantham({ terminal: ctx.terminal, args: ["--about"] });
   });
-
+  registry.register("experience", "Alias for grantham --experience", async (ctx) => {
+    await grantham({ terminal: ctx.terminal, args: ["--experience"] });
+  });
+  registry.register("skills", "Alias for grantham --skills", async (ctx) => {
+    await grantham({ terminal: ctx.terminal, args: ["--skills"] });
+  });
+  registry.register("contact", "Alias for grantham --contact", async (ctx) => {
+    await grantham({ terminal: ctx.terminal, args: ["--contact"] });
+  });
+  registry.register("resume", "Alias for grantham --resume", async (ctx) => {
+    await grantham({ terminal: ctx.terminal, args: ["--resume"] });
+  });
+  registry.register("hire", "Alias for grantham --hire", async (ctx) => {
+    await grantham({ terminal: ctx.terminal, args: ["--hire"] });
+  });
   terminal.setRegistry(registry);
 }
 

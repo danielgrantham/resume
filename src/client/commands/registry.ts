@@ -10,6 +10,7 @@ export type CommandHandler = (ctx: CommandContext) => Promise<void>;
 interface CommandEntry {
   handler: CommandHandler;
   description: string;
+  hidden?: boolean;
 }
 
 const CHAINING_PATTERNS = /[|&;]/;
@@ -17,8 +18,8 @@ const CHAINING_PATTERNS = /[|&;]/;
 export class CommandRegistry {
   private commands = new Map<string, CommandEntry>();
 
-  register(name: string, description: string, handler: CommandHandler): void {
-    this.commands.set(name, { handler, description });
+  register(name: string, description: string, handler: CommandHandler, hidden = false): void {
+    this.commands.set(name, { handler, description, hidden });
   }
 
   getCommandNames(): string[] {
@@ -26,7 +27,7 @@ export class CommandRegistry {
   }
 
   getCommands(): Map<string, CommandEntry> {
-    return this.commands;
+    return new Map([...this.commands].filter(([, e]) => !e.hidden));
   }
 
   async execute(raw: string, terminal: Terminal): Promise<void> {
@@ -35,7 +36,16 @@ export class CommandRegistry {
       return;
     }
 
-    const parts = raw.split(/\s+/).filter(Boolean);
+    let parts = raw.split(/\s+/).filter(Boolean);
+
+    if (parts[0] === "sudo") {
+      parts = parts.slice(1);
+      if (!parts.length) {
+        terminal.printSpans([{ text: "usage: sudo [-h] command [arg ...]\n" }]);
+        return;
+      }
+    }
+
     const name = parts[0];
     const args = parts.slice(1);
 
