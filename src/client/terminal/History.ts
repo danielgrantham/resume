@@ -1,36 +1,46 @@
-export class History {
-  private entries: string[] = [];
-  private cursor = -1;
+export interface History {
+	push(command: string): void
+	prev(): string | null
+	next(): string | null
+	getAll(): string[]
+	resetCursor(): void
+}
 
-  push(command: string): void {
-    if (command.trim()) {
-      this.entries.push(command);
-    }
-    this.cursor = this.entries.length;
-  }
+export function createHistory(): History {
+	const entries: string[] = []
+	let cursor = -1
 
-  prev(): string | null {
-    if (this.cursor > 0) {
-      this.cursor--;
-      return this.entries[this.cursor] ?? null;
-    }
-    return this.entries[0] ?? null;
-  }
+	return {
+		push(command: string): void {
+			if (command.trim()) {
+				entries.push(command)
+			}
+			cursor = entries.length
+		},
 
-  next(): string | null {
-    if (this.cursor < this.entries.length - 1) {
-      this.cursor++;
-      return this.entries[this.cursor] ?? null;
-    }
-    this.cursor = this.entries.length;
-    return null;
-  }
+		prev(): string | null {
+			if (cursor > 0) {
+				cursor--
+				return entries[cursor] ?? null
+			}
+			return entries[0] ?? null
+		},
 
-  getAll(): string[] {
-    return [...this.entries];
-  }
+		next(): string | null {
+			if (cursor < entries.length - 1) {
+				cursor++
+				return entries[cursor] ?? null
+			}
+			cursor = entries.length
+			return null
+		},
 
-  resetCursor(): void {
-    this.cursor = this.entries.length;
-  }
+		getAll(): string[] {
+			return [...entries]
+		},
+
+		resetCursor(): void {
+			cursor = entries.length
+		}
+	}
 }

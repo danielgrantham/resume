@@ -1,14 +1,17 @@
 ## Languages
+
 - TypeScript / JavaScript
 - Some experience with Rust, Python, C#, C++, and others
 
 ## Frameworks & Libraries
+
 - Node.js
 - Bun
 - Hono
 - Express
 
 ## Infrastructure & Tools
+
 - Docker / Kubernetes
 - MongoDB
 - Temporal.io
@@ -19,6 +22,7 @@
 - Linux / Bash
 
 ## Practices
+
 - Microservices Architecture
 - RESTful API Design
 - Agile / Scrum

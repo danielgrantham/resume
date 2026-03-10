@@ -1,131 +1,137 @@
 export interface StyledSpan {
-  text: string;
-  className?: string;
-  href?: string;
-  bold?: boolean;
+	text: string
+	className?: string
+	href?: string
+	bold?: boolean
 }
 
-export class OutputRenderer {
-  private outputEl: HTMLElement;
-  private streaming = false;
-  private streamSpeed = 30;
+export interface OutputRenderer {
+	readonly isStreaming: boolean
+	setSpeed(ms: number): void
+	print(spans: StyledSpan[]): void
+	printRaw(html: HTMLElement): void
+	stream(spans: StyledSpan[], speed?: number): Promise<void>
+	clear(): void
+}
 
-  constructor(outputEl: HTMLElement) {
-    this.outputEl = outputEl;
-  }
+function createSpanElement(span: StyledSpan): HTMLElement {
+	if (span.href) {
+		const a = document.createElement('a')
+		a.href = span.href
+		a.target = '_blank'
+		a.rel = 'noopener noreferrer'
+		a.className = 'terminal-link'
+		a.textContent = span.text
+		return a
+	}
 
-  get isStreaming(): boolean {
-    return this.streaming;
-  }
+	const el = document.createElement('span')
+	el.textContent = span.text
+	const classes: string[] = []
+	if (span.className) classes.push(span.className)
+	if (span.bold) classes.push('ansi-bold')
+	if (classes.length) el.className = classes.join(' ')
+	return el
+}
 
-  setSpeed(ms: number): void {
-    this.streamSpeed = ms;
-  }
+function createLine(spans: StyledSpan[]): HTMLDivElement {
+	const div = document.createElement('div')
+	for (const span of spans) {
+		div.appendChild(createSpanElement(span))
+	}
+	return div
+}
 
-  print(spans: StyledSpan[]): void {
-    const line = this.createLine(spans);
-    this.outputEl.appendChild(line);
-    this.scrollToBottom();
-  }
+function splitIntoLines(spans: StyledSpan[]): StyledSpan[][] {
+	const lines: StyledSpan[][] = []
+	let current: StyledSpan[] = []
 
-  printRaw(html: HTMLElement): void {
-    this.outputEl.appendChild(html);
-    this.scrollToBottom();
-  }
+	for (const span of spans) {
+		const parts = span.text.split('\n')
+		for (let i = 0; i < parts.length; i++) {
+			if (i > 0) {
+				lines.push(current)
+				current = []
+			}
+			const text = parts[i]!
+			if (text.length > 0) {
+				current.push({ ...span, text })
+			}
+		}
+	}
 
-  async stream(spans: StyledSpan[], speed?: number): Promise<void> {
-    this.streaming = true;
-    const interval = speed ?? this.streamSpeed;
-    const lines = this.splitIntoLines(spans);
-    const container = document.createElement("div");
-    this.outputEl.appendChild(container);
+	if (current.length > 0 || lines.length === 0) {
+		lines.push(current)
+	}
 
-    for (let i = 0; i < lines.length; i++) {
-      const lineDiv = document.createElement("div");
-      const lineSpans = lines[i]!;
-      if (lineSpans.length === 0) {
-        lineDiv.appendChild(document.createTextNode("\u200b"));
-      } else {
-        for (const span of lineSpans) {
-          lineDiv.appendChild(this.createSpanElement(span));
-        }
-      }
-      container.appendChild(lineDiv);
-      this.scrollToBottom();
+	return lines
+}
 
-      if (interval > 0 && i < lines.length - 1) {
-        await this.delay(interval);
-      }
-    }
+function delay(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms))
+}
 
-    this.streaming = false;
-  }
+export function createOutputRenderer(outputEl: HTMLElement): OutputRenderer {
+	let streaming = false
+	let streamSpeed = 30
 
-  private splitIntoLines(spans: StyledSpan[]): StyledSpan[][] {
-    const lines: StyledSpan[][] = [];
-    let current: StyledSpan[] = [];
+	function scrollToBottom(): void {
+		const terminal = outputEl.parentElement
+		if (terminal) {
+			terminal.scrollTop = terminal.scrollHeight
+		}
+	}
 
-    for (const span of spans) {
-      const parts = span.text.split("\n");
-      for (let i = 0; i < parts.length; i++) {
-        if (i > 0) {
-          lines.push(current);
-          current = [];
-        }
-        const text = parts[i]!;
-        if (text.length > 0) {
-          current.push({ ...span, text });
-        }
-      }
-    }
+	return {
+		get isStreaming(): boolean {
+			return streaming
+		},
 
-    if (current.length > 0 || lines.length === 0) {
-      lines.push(current);
-    }
+		setSpeed(ms: number): void {
+			streamSpeed = ms
+		},
 
-    return lines;
-  }
+		print(spans: StyledSpan[]): void {
+			const line = createLine(spans)
+			outputEl.appendChild(line)
+			scrollToBottom()
+		},
 
-  clear(): void {
-    this.outputEl.innerHTML = "";
-  }
+		printRaw(html: HTMLElement): void {
+			outputEl.appendChild(html)
+			scrollToBottom()
+		},
 
-  private createLine(spans: StyledSpan[]): HTMLDivElement {
-    const div = document.createElement("div");
-    for (const span of spans) {
-      div.appendChild(this.createSpanElement(span));
-    }
-    return div;
-  }
+		async stream(spans: StyledSpan[], speed?: number): Promise<void> {
+			streaming = true
+			const interval = speed ?? streamSpeed
+			const lines = splitIntoLines(spans)
+			const container = document.createElement('div')
+			outputEl.appendChild(container)
 
-  private createSpanElement(span: StyledSpan): HTMLElement {
-    if (span.href) {
-      const a = document.createElement("a");
-      a.href = span.href;
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      a.className = "terminal-link";
-      a.textContent = span.text;
-      return a;
-    }
+			for (let i = 0; i < lines.length; i++) {
+				const lineDiv = document.createElement('div')
+				const lineSpans = lines[i]!
+				if (lineSpans.length === 0) {
+					lineDiv.appendChild(document.createTextNode('\u200b'))
+				} else {
+					for (const span of lineSpans) {
+						lineDiv.appendChild(createSpanElement(span))
+					}
+				}
+				container.appendChild(lineDiv)
+				scrollToBottom()
 
-    const el = document.createElement("span");
-    el.textContent = span.text;
-    const classes: string[] = [];
-    if (span.className) classes.push(span.className);
-    if (span.bold) classes.push("ansi-bold");
-    if (classes.length) el.className = classes.join(" ");
-    return el;
-  }
+				if (interval > 0 && i < lines.length - 1) {
+					await delay(interval)
+				}
+			}
 
-  private scrollToBottom(): void {
-    const terminal = this.outputEl.parentElement;
-    if (terminal) {
-      terminal.scrollTop = terminal.scrollHeight;
-    }
-  }
+			streaming = false
+		},
 
-  private delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
+		clear(): void {
+			outputEl.innerHTML = ''
+		}
+	}
 }

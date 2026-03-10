@@ -1,244 +1,252 @@
-import { History } from "./History.ts";
-import { OutputRenderer, type StyledSpan } from "./OutputRenderer.ts";
-import { InputHandler } from "./InputHandler.ts";
-import { TabComplete } from "./TabComplete.ts";
-import type { FileSystem } from "../filesystem/FileSystem.ts";
-import type { CommandRegistry } from "../commands/registry.ts";
+import { createHistory, type History } from './History.ts'
+import { createOutputRenderer, type OutputRenderer, type StyledSpan } from './OutputRenderer.ts'
+import { createInputHandler, type InputHandler } from './InputHandler.ts'
+import { createTabComplete, type TabComplete } from './TabComplete.ts'
+import type { FileSystem } from '../filesystem/FileSystem.ts'
+import type { CommandRegistry } from '../commands/registry.ts'
 
-export class Terminal {
-  readonly history = new History();
-  readonly renderer: OutputRenderer;
-  readonly inputHandler: InputHandler;
-  readonly tabComplete = new TabComplete();
+export type { StyledSpan }
 
-  private terminalEl: HTMLDivElement;
-  private outputEl: HTMLDivElement;
-  private promptLineEl: HTMLDivElement;
-  private inputLineEl: HTMLDivElement;
-  private dollarEl: HTMLSpanElement;
-  private inputTextEl: HTMLSpanElement;
-  private cursorEl: HTMLSpanElement;
-  private hiddenInput: HTMLInputElement;
-  private ghostEl: HTMLDivElement | null = null;
+export interface Terminal {
+	readonly history: History
+	readonly renderer: OutputRenderer
+	readonly inputHandler: InputHandler
+	readonly tabComplete: TabComplete
+	setRegistry(registry: CommandRegistry): void
+	dismissGhostText(): void
+	freezePromptAndInput(inputText: string): void
+	printError(message: string): void
+	printSpans(spans: StyledSpan[]): void
+	streamSpans(spans: StyledSpan[]): Promise<void>
+	prompt(question: string): Promise<string>
+	promptInline(question: string): Promise<string>
+}
 
-  private fs: FileSystem;
-  private registry: CommandRegistry | null = null;
-  private ghostDismissed = false;
+export function createTerminal(container: HTMLElement, fs: FileSystem): Terminal {
+	let registry: CommandRegistry | null = null
+	let ghostEl: HTMLDivElement | null = null
+	let ghostDismissed = false
 
-  constructor(container: HTMLElement, fs: FileSystem) {
-    this.fs = fs;
+	const terminalEl = document.createElement('div')
+	terminalEl.id = 'terminal'
 
-    this.terminalEl = document.createElement("div");
-    this.terminalEl.id = "terminal";
+	const outputEl = document.createElement('div')
+	outputEl.id = 'terminal-output'
 
-    this.outputEl = document.createElement("div");
-    this.outputEl.id = "terminal-output";
+	const promptLineEl = document.createElement('div')
+	promptLineEl.className = 'prompt-line'
 
-    this.promptLineEl = document.createElement("div");
-    this.promptLineEl.className = "prompt-line";
+	const inputLineEl = document.createElement('div')
+	inputLineEl.className = 'input-line'
 
-    this.inputLineEl = document.createElement("div");
-    this.inputLineEl.className = "input-line";
+	const dollarEl = document.createElement('span')
+	dollarEl.className = 'prompt-dollar'
+	dollarEl.textContent = '$'
 
-    this.dollarEl = document.createElement("span");
-    this.dollarEl.className = "prompt-dollar";
-    this.dollarEl.textContent = "$";
+	const inputTextEl = document.createElement('span')
+	inputTextEl.className = 'input-text'
 
-    this.inputTextEl = document.createElement("span");
-    this.inputTextEl.className = "input-text";
+	const cursorEl = document.createElement('span')
+	cursorEl.className = 'cursor'
 
-    this.cursorEl = document.createElement("span");
-    this.cursorEl.className = "cursor";
+	const hiddenInput = document.createElement('input')
+	hiddenInput.id = 'hidden-input'
+	hiddenInput.type = 'text'
+	hiddenInput.autocapitalize = 'none'
+	hiddenInput.autocomplete = 'off'
+	hiddenInput.spellcheck = false
 
-    this.hiddenInput = document.createElement("input");
-    this.hiddenInput.id = "hidden-input";
-    this.hiddenInput.type = "text";
-    this.hiddenInput.autocapitalize = "none";
-    this.hiddenInput.autocomplete = "off";
-    this.hiddenInput.spellcheck = false;
+	inputLineEl.appendChild(dollarEl)
+	inputLineEl.appendChild(inputTextEl)
+	inputLineEl.appendChild(cursorEl)
 
-    this.inputLineEl.appendChild(this.dollarEl);
-    this.inputLineEl.appendChild(this.inputTextEl);
-    this.inputLineEl.appendChild(this.cursorEl);
+	terminalEl.appendChild(outputEl)
+	terminalEl.appendChild(promptLineEl)
+	terminalEl.appendChild(inputLineEl)
+	terminalEl.appendChild(hiddenInput)
 
-    this.terminalEl.appendChild(this.outputEl);
-    this.terminalEl.appendChild(this.promptLineEl);
-    this.terminalEl.appendChild(this.inputLineEl);
-    this.terminalEl.appendChild(this.hiddenInput);
+	container.appendChild(terminalEl)
 
-    container.appendChild(this.terminalEl);
+	const history = createHistory()
+	const renderer = createOutputRenderer(outputEl)
+	const tabComplete = createTabComplete()
 
-    this.renderer = new OutputRenderer(this.outputEl);
+	function scrollToBottom(): void {
+		terminalEl.scrollTop = terminalEl.scrollHeight
+	}
 
-    this.inputHandler = new InputHandler({
-      inputEl: this.inputTextEl,
-      cursorEl: this.cursorEl,
-      hiddenInput: this.hiddenInput,
-      history: this.history,
-      tabComplete: this.tabComplete,
-      renderer: this.renderer,
-      fs: this.fs,
-      onCommand: (raw) => this.executeCommand(raw),
-      onScroll: () => this.scrollToBottom(),
-    });
+	function renderPrompt(): void {
+		promptLineEl.innerHTML = ''
+		promptLineEl.style.display = ''
+		dollarEl.style.display = ''
+		const hasPrevious = !!outputEl.querySelector('.prompt-line')
+		promptLineEl.className = hasPrevious ? 'prompt-line prompt-spaced' : 'prompt-line'
+		const cwd = fs.getCwdDisplay()
 
-    this.terminalEl.addEventListener("click", () => this.inputHandler.focus());
-    this.renderPrompt();
-    this.showGhostText();
+		const spans: { text: string; className: string }[] = [
+			{ text: 'user@GRANTHAM-TERMINAL', className: 'prompt-user' },
+			{ text: 'BASH', className: 'prompt-shell' },
+			{ text: cwd, className: 'prompt-cwd' }
+		]
 
-    requestAnimationFrame(() => this.inputHandler.focus());
-  }
+		for (const s of spans) {
+			const el = document.createElement('span')
+			el.textContent = s.text
+			el.className = s.className
+			promptLineEl.appendChild(el)
+		}
+	}
 
-  setRegistry(registry: CommandRegistry): void {
-    this.registry = registry;
-    this.tabComplete.setCommands(registry.getCommandNames());
-  }
+	function showGhostText(): void {
+		ghostEl = document.createElement('div')
+		ghostEl.className = 'ghost-text'
+		ghostEl.textContent = 'Type `grantham --help` to get started'
+		outputEl.appendChild(ghostEl)
+	}
 
-  dismissGhostText(): void {
-    if (this.ghostEl && !this.ghostDismissed) {
-      this.ghostDismissed = true;
-      this.ghostEl.remove();
-      this.ghostEl = null;
-    }
-  }
+	function freezePromptAndInput(inputText: string): void {
+		const isFirst = !outputEl.querySelector('.prompt-line')
+		const promptDiv = document.createElement('div')
+		promptDiv.className = isFirst ? 'prompt-line' : 'prompt-line prompt-spaced'
+		promptDiv.innerHTML = promptLineEl.innerHTML
+		outputEl.appendChild(promptDiv)
 
-  private renderPrompt(): void {
-    this.promptLineEl.innerHTML = "";
-    this.promptLineEl.style.display = "";
-    this.dollarEl.style.display = "";
-    const hasPrevious = !!this.outputEl.querySelector(".prompt-line");
-    this.promptLineEl.className = hasPrevious
-      ? "prompt-line prompt-spaced"
-      : "prompt-line";
-    const cwd = this.fs.getCwdDisplay();
+		const inputDiv = document.createElement('div')
+		inputDiv.className = 'input-line'
+		const dollar = document.createElement('span')
+		dollar.className = 'prompt-dollar'
+		dollar.textContent = '$'
+		inputDiv.appendChild(dollar)
+		const inputSpan = document.createElement('span')
+		inputSpan.textContent = inputText
+		inputDiv.appendChild(inputSpan)
+		outputEl.appendChild(inputDiv)
+	}
 
-    const spans: { text: string; className: string }[] = [
-      { text: "user@GRANTHAM-TERMINAL", className: "prompt-user" },
-      { text: "BASH", className: "prompt-shell" },
-      { text: cwd, className: "prompt-cwd" },
-    ];
+	function freezeInputOnly(text: string): void {
+		const div = document.createElement('div')
+		div.textContent = text
+		outputEl.appendChild(div)
+	}
 
-    for (const s of spans) {
-      const el = document.createElement("span");
-      el.textContent = s.text;
-      el.className = s.className;
-      this.promptLineEl.appendChild(el);
-    }
-  }
+	async function executeCommand(raw: string): Promise<void> {
+		if (raw === '\x03') {
+			freezePromptAndInput('')
+			renderPrompt()
+			return
+		}
 
-  private showGhostText(): void {
-    this.ghostEl = document.createElement("div");
-    this.ghostEl.className = "ghost-text";
-    this.ghostEl.textContent = "Type `grantham --help` to get started";
-    this.outputEl.appendChild(this.ghostEl);
-  }
+		freezePromptAndInput(raw)
+		inputHandler.disable()
 
-  private async executeCommand(raw: string): Promise<void> {
-    if (raw === "\x03") {
-      this.freezePromptAndInput("");
-      this.renderPrompt();
-      return;
-    }
+		if (raw.trim()) {
+			await registry?.execute(raw.trim(), terminal)
+		}
 
-    this.freezePromptAndInput(raw);
-    this.inputHandler.disable();
+		renderPrompt()
+		inputHandler.enable()
+		inputHandler.setInput('')
+		scrollToBottom()
+		inputHandler.focus()
+	}
 
-    if (raw.trim()) {
-      await this.registry?.execute(raw.trim(), this);
-    }
+	const inputHandler = createInputHandler({
+		inputEl: inputTextEl,
+		cursorEl,
+		hiddenInput,
+		history,
+		tabComplete,
+		renderer,
+		fs,
+		onCommand: (raw) => executeCommand(raw),
+		onScroll: () => scrollToBottom()
+	})
 
-    this.renderPrompt();
-    this.inputHandler.enable();
-    this.inputHandler.setInput("");
-    this.scrollToBottom();
-    this.inputHandler.focus();
-  }
+	terminalEl.addEventListener('click', () => inputHandler.focus())
+	renderPrompt()
+	showGhostText()
+	requestAnimationFrame(() => inputHandler.focus())
 
-  freezePromptAndInput(inputText: string): void {
-    const isFirst = !this.outputEl.querySelector(".prompt-line");
-    const promptDiv = document.createElement("div");
-    promptDiv.className = isFirst ? "prompt-line" : "prompt-line prompt-spaced";
-    promptDiv.innerHTML = this.promptLineEl.innerHTML;
-    this.outputEl.appendChild(promptDiv);
+	const terminal: Terminal = {
+		history,
+		renderer,
+		inputHandler,
+		tabComplete,
 
-    const inputDiv = document.createElement("div");
-    inputDiv.className = "input-line";
-    const dollar = document.createElement("span");
-    dollar.className = "prompt-dollar";
-    dollar.textContent = "$";
-    inputDiv.appendChild(dollar);
-    const inputSpan = document.createElement("span");
-    inputSpan.textContent = inputText;
-    inputDiv.appendChild(inputSpan);
-    this.outputEl.appendChild(inputDiv);
-  }
+		setRegistry(reg: CommandRegistry): void {
+			registry = reg
+			tabComplete.setCommands(reg.getCommandNames())
+		},
 
-  printError(message: string): void {
-    this.renderer.print([{ text: message, className: "ansi-red" }]);
-  }
+		dismissGhostText(): void {
+			if (ghostEl && !ghostDismissed) {
+				ghostDismissed = true
+				ghostEl.remove()
+				ghostEl = null
+			}
+		},
 
-  printSpans(spans: StyledSpan[]): void {
-    this.renderer.print(spans);
-  }
+		freezePromptAndInput,
 
-  async streamSpans(spans: StyledSpan[]): Promise<void> {
-    await this.renderer.stream(spans);
-  }
+		printError(message: string): void {
+			renderer.print([{ text: message, className: 'ansi-red' }])
+		},
 
-  prompt(question: string): Promise<string> {
-    return new Promise((resolve) => {
-      this.renderer.print([{ text: question }]);
-      this.inputHandler.setInput("");
-      this.inputHandler.setPromptHandler((value) => {
-        this.freezeInputOnly(value);
-        this.inputHandler.setPromptHandler(null);
-        resolve(value);
-      });
-    });
-  }
+		printSpans(spans: StyledSpan[]): void {
+			renderer.print(spans)
+		},
 
-  promptInline(question: string): Promise<string> {
-    return new Promise((resolve) => {
-      this.promptLineEl.style.display = "none";
-      this.dollarEl.style.display = "none";
+		async streamSpans(spans: StyledSpan[]): Promise<void> {
+			await renderer.stream(spans)
+		},
 
-      const label = document.createElement("span");
-      label.textContent = question;
-      this.inputLineEl.insertBefore(label, this.dollarEl);
-      this.inputTextEl.classList.add("inline-prompt");
+		prompt(question: string): Promise<string> {
+			return new Promise((resolve) => {
+				renderer.print([{ text: question }])
+				inputHandler.setInput('')
+				inputHandler.setPromptHandler((value) => {
+					freezeInputOnly(value)
+					inputHandler.setPromptHandler(null)
+					resolve(value)
+				})
+			})
+		},
 
-      this.inputHandler.setInput("");
-      this.inputHandler.enable();
-      this.scrollToBottom();
-      this.inputHandler.focus();
+		promptInline(question: string): Promise<string> {
+			return new Promise((resolve) => {
+				promptLineEl.style.display = 'none'
+				dollarEl.style.display = 'none'
 
-      this.inputHandler.setPromptHandler((value) => {
-        const frozenLine = document.createElement("div");
-        const frozenLabel = document.createElement("span");
-        frozenLabel.textContent = question;
-        frozenLine.appendChild(frozenLabel);
-        const frozenValue = document.createElement("span");
-        frozenValue.textContent = value;
-        frozenLine.appendChild(frozenValue);
-        this.outputEl.appendChild(frozenLine);
+				const label = document.createElement('span')
+				label.textContent = question
+				inputLineEl.insertBefore(label, dollarEl)
+				inputTextEl.classList.add('inline-prompt')
 
-        label.remove();
-        this.inputTextEl.classList.remove("inline-prompt");
-        this.inputHandler.setPromptHandler(null);
-        this.inputHandler.setInput("");
-        this.inputHandler.disable();
-        resolve(value);
-      });
-    });
-  }
+				inputHandler.setInput('')
+				inputHandler.enable()
+				scrollToBottom()
+				inputHandler.focus()
 
-  private freezeInputOnly(text: string): void {
-    const div = document.createElement("div");
-    div.textContent = text;
-    this.outputEl.appendChild(div);
-  }
+				inputHandler.setPromptHandler((value) => {
+					const frozenLine = document.createElement('div')
+					const frozenLabel = document.createElement('span')
+					frozenLabel.textContent = question
+					frozenLine.appendChild(frozenLabel)
+					const frozenValue = document.createElement('span')
+					frozenValue.textContent = value
+					frozenLine.appendChild(frozenValue)
+					outputEl.appendChild(frozenLine)
 
-  private scrollToBottom(): void {
-    this.terminalEl.scrollTop = this.terminalEl.scrollHeight;
-  }
+					label.remove()
+					inputTextEl.classList.remove('inline-prompt')
+					inputHandler.setPromptHandler(null)
+					inputHandler.setInput('')
+					inputHandler.disable()
+					resolve(value)
+				})
+			})
+		}
+	}
+
+	return terminal
 }

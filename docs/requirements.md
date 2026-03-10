@@ -14,18 +14,18 @@ A single-page application (SPA) personal website for Daniel Grantham that presen
 
 ## 2. Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Language | TypeScript (strict mode) |
-| Frontend Framework | Vanilla TypeScript (no framework) |
-| Build Tool / Runtime | Bun |
-| Backend Runtime | Bun |
-| Backend Framework | Hono (lightweight, runs natively on Bun) |
-| Database | SQLite (via `bun:sqlite`) |
-| Email Service | Resend (developer-friendly API, generous free tier) |
-| Font | Cascadia Code (served via CDN or self-hosted) |
-| Deployment | TBD — must support a persistent Bun process (VPS, Railway, Fly.io, or similar) |
-| CI/CD | GitHub Actions — push to `main` triggers build and deploy |
+| Layer                | Technology                                                                     |
+| -------------------- | ------------------------------------------------------------------------------ |
+| Language             | TypeScript (strict mode)                                                       |
+| Frontend Framework   | Vanilla TypeScript (no framework)                                              |
+| Build Tool / Runtime | Bun                                                                            |
+| Backend Runtime      | Bun                                                                            |
+| Backend Framework    | Hono (lightweight, runs natively on Bun)                                       |
+| Database             | SQLite (via `bun:sqlite`)                                                      |
+| Email Service        | Resend (developer-friendly API, generous free tier)                            |
+| Font                 | Cascadia Code (served via CDN or self-hosted)                                  |
+| Deployment           | TBD — must support a persistent Bun process (VPS, Railway, Fly.io, or similar) |
+| CI/CD                | GitHub Actions — push to `main` triggers build and deploy                      |
 
 ### 2.1 Project Structure (Actual)
 
@@ -169,19 +169,19 @@ grantham-terminal/
 
 ### 4.1 Color Theme — "One Half Dark"
 
-| Token | Hex | Usage |
-|---|---|---|
-| Page background | `#000000` | Body background (pure black) |
-| Terminal background | `#282c34` | Terminal panel background |
-| Foreground (default text) | `#dcdfe4` | Standard output, prompt text |
-| Black (ANSI 0) | `#282c34` | — |
-| Red (ANSI 1) | `#e06c75` | Errors, `command not found` |
-| Green (ANSI 2) | `#98c379` | Success messages, directories in `ls` |
-| Yellow (ANSI 3) | `#e5c07b` | Warnings, flags in help output |
-| Blue (ANSI 4) | `#61afef` | Prompt user/host, links |
-| Magenta (ANSI 5) | `#c678dd` | Command names in help |
-| Cyan (ANSI 6) | `#56b6c2` | Paths, filenames |
-| White (ANSI 7) | `#dcdfe4` | — |
+| Token                     | Hex       | Usage                                 |
+| ------------------------- | --------- | ------------------------------------- |
+| Page background           | `#000000` | Body background (pure black)          |
+| Terminal background       | `#282c34` | Terminal panel background             |
+| Foreground (default text) | `#dcdfe4` | Standard output, prompt text          |
+| Black (ANSI 0)            | `#282c34` | —                                     |
+| Red (ANSI 1)              | `#e06c75` | Errors, `command not found`           |
+| Green (ANSI 2)            | `#98c379` | Success messages, directories in `ls` |
+| Yellow (ANSI 3)           | `#e5c07b` | Warnings, flags in help output        |
+| Blue (ANSI 4)             | `#61afef` | Prompt user/host, links               |
+| Magenta (ANSI 5)          | `#c678dd` | Command names in help                 |
+| Cyan (ANSI 6)             | `#56b6c2` | Paths, filenames                      |
+| White (ANSI 7)            | `#dcdfe4` | —                                     |
 
 ### 4.2 Typography
 
@@ -261,7 +261,7 @@ user@grantham.terminal bash ~$
 ### 5.5 Ghost Text / Helper
 
 - On first load, **before any command has been entered**, a ghost text hint appears at the bottom of the terminal:
-  
+
   ```
   Type `grantham --help` to get started
   ```
@@ -312,21 +312,21 @@ The virtual filesystem mirrors the real `src/content/` structure and adds logica
 
 ### 7.1 Bash Commands
 
-| Command | Behavior |
-|---|---|
-| `ls` | Lists contents of the current directory. Directories in green, files in default color. |
-| `ls <path>` | Lists contents of the specified directory. |
-| `cat <file>` | Streams the contents of the specified file to the terminal. |
-| `cd <dir>` | Changes current working directory. |
-| `cd` / `cd ~` | Returns to home directory (`~`). |
-| `pwd` | Prints the current working directory (e.g., `/home/user`). |
-| `clear` | Clears all terminal output. Resets view to an empty terminal with a fresh prompt. |
-| `echo <text>` | Prints the provided text to the terminal. |
-| `whoami` | Prints `Daniel Grantham`. |
-| `history` | Prints a numbered list of all commands entered in the session. |
-| `help` | Prints a list of all available commands with brief descriptions. |
-| `man grantham` | Alias for `grantham --help`. |
-| `rm -rf /` | Prints `Good try.` — Easter egg. Any other `rm` usage returns `command not found` or `permission denied`. |
+| Command        | Behavior                                                                                                  |
+| -------------- | --------------------------------------------------------------------------------------------------------- |
+| `ls`           | Lists contents of the current directory. Directories in green, files in default color.                    |
+| `ls <path>`    | Lists contents of the specified directory.                                                                |
+| `cat <file>`   | Streams the contents of the specified file to the terminal.                                               |
+| `cd <dir>`     | Changes current working directory.                                                                        |
+| `cd` / `cd ~`  | Returns to home directory (`~`).                                                                          |
+| `pwd`          | Prints the current working directory (e.g., `/home/user`).                                                |
+| `clear`        | Clears all terminal output. Resets view to an empty terminal with a fresh prompt.                         |
+| `echo <text>`  | Prints the provided text to the terminal.                                                                 |
+| `whoami`       | Prints `Daniel Grantham`.                                                                                 |
+| `history`      | Prints a numbered list of all commands entered in the session.                                            |
+| `help`         | Prints a list of all available commands with brief descriptions.                                          |
+| `man grantham` | Alias for `grantham --help`.                                                                              |
+| `rm -rf /`     | Prints `Good try.` — Easter egg. Any other `rm` usage returns `command not found` or `permission denied`. |
 
 ### 7.2 The `grantham` Command
 
@@ -429,6 +429,7 @@ Contact Email: █
 ```
 
 **Email validation:**
+
 - If the entered email fails basic format validation (`name@domain.tld`), print:
   ```
   Invalid email format. Please try again.
@@ -445,6 +446,7 @@ Daniel will contact you ASAP to follow up.
 ```
 
 **Backend behavior:**
+
 1. `POST /api/hire` with `{ company, email }`.
 2. Server validates the email format again server-side.
 3. Server checks rate limit (e.g., max 3 submissions per IP per hour).
@@ -456,18 +458,18 @@ Daniel will contact you ASAP to follow up.
 
 ### 7.3 Error Handling
 
-| Scenario | Response |
-|---|---|
-| Unknown command | `bash: <command>: command not found` (red text) |
-| Command chaining (`\|`, `&&`, `;`) | `Command chaining is not supported.` |
-| `cat` with no file argument | `cat: missing file operand` |
-| `cat` on nonexistent file | `cat: <file>: No such file or directory` |
-| `cd` to nonexistent directory | `bash: cd: <dir>: No such file or directory` |
-| `cat` on a directory | `cat: <dir>: Is a directory` |
-| `cd` into a file | `bash: cd: <file>: Not a directory` |
-| `grantham` with unknown flag | `grantham: unknown option '<flag>'. Try 'grantham --help'.` |
-| `grantham` with no flags | Same as `grantham --help`. |
-| Network error on `--hire` | `Error: Unable to reach server. Please try again.` |
+| Scenario                           | Response                                                    |
+| ---------------------------------- | ----------------------------------------------------------- |
+| Unknown command                    | `bash: <command>: command not found` (red text)             |
+| Command chaining (`\|`, `&&`, `;`) | `Command chaining is not supported.`                        |
+| `cat` with no file argument        | `cat: missing file operand`                                 |
+| `cat` on nonexistent file          | `cat: <file>: No such file or directory`                    |
+| `cd` to nonexistent directory      | `bash: cd: <dir>: No such file or directory`                |
+| `cat` on a directory               | `cat: <dir>: Is a directory`                                |
+| `cd` into a file                   | `bash: cd: <file>: Not a directory`                         |
+| `grantham` with unknown flag       | `grantham: unknown option '<flag>'. Try 'grantham --help'.` |
+| `grantham` with no flags           | Same as `grantham --help`.                                  |
+| Network error on `--hire`          | `Error: Unable to reach server. Please try again.`          |
 
 ---
 
@@ -507,28 +509,28 @@ Daniel will contact you ASAP to follow up.
 
 ### 10.2 Content Files
 
-| File | Used By |
-|---|---|
-| `about.md` | `grantham --about`, `cat about.md` |
-| `experience.md` | `grantham --experience`, `cat experience.md` |
-| `projects.md` | `grantham --projects`, `cat projects/` listing |
-| `skills.md` | `grantham --skills`, `cat skills.md` |
-| `education.md` | `grantham --education`, `cat education.md` |
-| `contact.md` | `grantham --contact`, `cat contact.md` |
+| File            | Used By                                        |
+| --------------- | ---------------------------------------------- |
+| `about.md`      | `grantham --about`, `cat about.md`             |
+| `experience.md` | `grantham --experience`, `cat experience.md`   |
+| `projects.md`   | `grantham --projects`, `cat projects/` listing |
+| `skills.md`     | `grantham --skills`, `cat skills.md`           |
+| `education.md`  | `grantham --education`, `cat education.md`     |
+| `contact.md`    | `grantham --contact`, `cat contact.md`         |
 
 ### 10.3 Markdown Rendering in Terminal
 
 Markdown is converted to terminal-styled output:
 
-| Markdown Element | Terminal Rendering |
-|---|---|
-| `# Heading` | UPPERCASE, bold, underlined with `═` characters |
-| `## Subheading` | Bold, underlined with `─` characters |
-| `- bullet` | `  • bullet` (indented with bullet character) |
-| `**bold**` | Bold (CSS `font-weight: bold`) |
-| `[text](url)` | Clickable link in blue (`#61afef`), underline on hover |
-| `` `code` `` | Highlighted in yellow (`#e5c07b`) |
-| Paragraphs | Separated by a blank line |
+| Markdown Element | Terminal Rendering                                     |
+| ---------------- | ------------------------------------------------------ |
+| `# Heading`      | UPPERCASE, bold, underlined with `═` characters        |
+| `## Subheading`  | Bold, underlined with `─` characters                   |
+| `- bullet`       | `  • bullet` (indented with bullet character)          |
+| `**bold**`       | Bold (CSS `font-weight: bold`)                         |
+| `[text](url)`    | Clickable link in blue (`#61afef`), underline on hover |
+| `` `code` ``     | Highlighted in yellow (`#e5c07b`)                      |
+| Paragraphs       | Separated by a blank line                              |
 
 ---
 
@@ -536,30 +538,31 @@ Markdown is converted to terminal-styled output:
 
 ### 11.1 Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/api/hire` | Submit a hire inquiry |
-| `GET` | `/content/:filename` | Retrieve a markdown content file |
+| Method | Path                 | Description                      |
+| ------ | -------------------- | -------------------------------- |
+| `POST` | `/api/hire`          | Submit a hire inquiry            |
+| `GET`  | `/content/:filename` | Retrieve a markdown content file |
 
 ### 11.2 `POST /api/hire`
 
 **Request body:**
+
 ```json
 {
-  "company": "string (required, 1–200 chars)",
-  "email": "string (required, valid email format)"
+	"company": "string (required, 1–200 chars)",
+	"email": "string (required, valid email format)"
 }
 ```
 
 **Responses:**
 
-| Status | Body | Condition |
-|---|---|---|
-| `200` | `{ "success": true }` | Inquiry stored and email sent |
-| `400` | `{ "error": "Invalid email format" }` | Email validation failed |
-| `400` | `{ "error": "Company name is required" }` | Missing company |
-| `429` | `{ "error": "Rate limit exceeded" }` | > 3 requests/IP/hour |
-| `500` | `{ "error": "Internal server error" }` | Unexpected failure |
+| Status | Body                                      | Condition                     |
+| ------ | ----------------------------------------- | ----------------------------- |
+| `200`  | `{ "success": true }`                     | Inquiry stored and email sent |
+| `400`  | `{ "error": "Invalid email format" }`     | Email validation failed       |
+| `400`  | `{ "error": "Company name is required" }` | Missing company               |
+| `429`  | `{ "error": "Rate limit exceeded" }`      | > 3 requests/IP/hour          |
+| `500`  | `{ "error": "Internal server error" }`    | Unexpected failure            |
 
 ### 11.3 Database Schema
 
@@ -595,22 +598,22 @@ On successful hire inquiry submission, send an email to Daniel via **Resend**:
 Although SEO is not a priority, the following meta tags should be present for good link previews when the URL is shared:
 
 ```html
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Daniel Grantham — Software Developer">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Daniel Grantham — Software Developer" />
 
 <!-- Open Graph -->
-<meta property="og:title" content="Daniel Grantham — Software Developer">
-<meta property="og:description" content="Interactive terminal-style personal website">
-<meta property="og:image" content="/og-image.png">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://<domain>">
+<meta property="og:title" content="Daniel Grantham — Software Developer" />
+<meta property="og:description" content="Interactive terminal-style personal website" />
+<meta property="og:image" content="/og-image.png" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://<domain>" />
 
 <!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Daniel Grantham — Software Developer">
-<meta name="twitter:description" content="Interactive terminal-style personal website">
-<meta name="twitter:image" content="/og-image.png">
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Daniel Grantham — Software Developer" />
+<meta name="twitter:description" content="Interactive terminal-style personal website" />
+<meta name="twitter:image" content="/og-image.png" />
 ```
 
 - An **Open Graph image** (`og-image.png`, 1200×630px) should be created — a screenshot or stylized rendering of the terminal with some sample output.
@@ -619,12 +622,12 @@ Although SEO is not a priority, the following meta tags should be present for go
 
 ## 13. Easter Eggs
 
-| Trigger | Response |
-|---|---|
-| `rm -rf /` | `Good try.` |
-| `rm -rf` (any variant with `/`) | `Good try.` |
-| `rm` (anything else) | `rm: command not supported` |
-| `sudo <anything>` | `bash: sudo: command not found` (or `Permission denied.`) |
+| Trigger                         | Response                                                  |
+| ------------------------------- | --------------------------------------------------------- |
+| `rm -rf /`                      | `Good try.`                                               |
+| `rm -rf` (any variant with `/`) | `Good try.`                                               |
+| `rm` (anything else)            | `rm: command not supported`                               |
+| `sudo <anything>`               | `bash: sudo: command not found` (or `Permission denied.`) |
 
 Additional Easter eggs may be added in future iterations.
 
@@ -643,26 +646,26 @@ PORT=3000
 
 ## 15. Performance Requirements
 
-| Metric | Target |
-|---|---|
-| Initial page load (LCP) | < 1.5s |
-| Time to interactive | < 2s |
-| Content file fetch | < 200ms |
-| Hire submission round-trip | < 500ms |
-| Character stream interval | 5–15ms (configurable) |
+| Metric                     | Target                |
+| -------------------------- | --------------------- |
+| Initial page load (LCP)    | < 1.5s                |
+| Time to interactive        | < 2s                  |
+| Content file fetch         | < 200ms               |
+| Hire submission round-trip | < 500ms               |
+| Character stream interval  | 5–15ms (configurable) |
 
 ---
 
 ## 16. Browser Support
 
-| Browser | Minimum Version |
-|---|---|
-| Chrome | 90+ |
-| Firefox | 90+ |
-| Safari | 15+ |
-| Edge | 90+ |
-| Mobile Safari (iOS) | 15+ |
-| Chrome for Android | 90+ |
+| Browser             | Minimum Version |
+| ------------------- | --------------- |
+| Chrome              | 90+             |
+| Firefox             | 90+             |
+| Safari              | 15+             |
+| Edge                | 90+             |
+| Mobile Safari (iOS) | 15+             |
+| Chrome for Android  | 90+             |
 
 ---
 

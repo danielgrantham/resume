@@ -1,7 +1,7 @@
-import type { CommandHandler } from "../registry.ts";
+import type { CommandHandler } from '../registry.ts'
 
 export function createClear(): CommandHandler {
-  return async ({ terminal }) => {
-    terminal.renderer.clear();
-  };
+	return async ({ terminal }) => {
+		terminal.renderer.clear()
+	}
 }

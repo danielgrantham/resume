@@ -3,4 +3,3 @@ Hi, I'm **Daniel Grantham** — a software developer working in the media and en
 I'm currently working as a Senior Software Developer at [Warner Bros. Discovery](https://www.warnerbros.com/discovery) where I'm responsible for building and maintaining the internal tools and platforms that power the company's content and distribution.
 
 I've been in software development since 2018, but I've been working in the media and entertainment industry since 2007 when I worked in broadcast control rooms.
-

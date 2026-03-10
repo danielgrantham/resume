@@ -3,34 +3,34 @@ name: Terminal Resume Website
 overview: Build a terminal-emulator SPA personal website from scratch using TypeScript, Bun, and Hono, where all content is accessed via simulated bash commands. The project includes a virtual filesystem, character-by-character output streaming, interactive prompts, and a backend API for hire inquiries.
 todos:
   - id: scaffold
-    content: "Phase 1: Project scaffolding — bun init, dependencies, tsconfig, directory structure, .env.example, .gitignore"
+    content: 'Phase 1: Project scaffolding — bun init, dependencies, tsconfig, directory structure, .env.example, .gitignore'
     status: completed
   - id: server
-    content: "Phase 2: Hono server with SQLite DB, POST /api/hire (validation, rate limiting, email), GET /content/:filename"
+    content: 'Phase 2: Hono server with SQLite DB, POST /api/hire (validation, rate limiting, email), GET /content/:filename'
     status: completed
   - id: layout-css
-    content: "Phase 3: HTML shell, CSS (One Half Dark theme, responsive layout, typography, terminal chrome, avatar, identity panel)"
+    content: 'Phase 3: HTML shell, CSS (One Half Dark theme, responsive layout, typography, terminal chrome, avatar, identity panel)'
     status: completed
   - id: terminal-engine
-    content: "Phase 4: Terminal engine — Terminal.ts, InputHandler.ts, OutputRenderer.ts (character streaming), History.ts, TabComplete.ts"
+    content: 'Phase 4: Terminal engine — Terminal.ts, InputHandler.ts, OutputRenderer.ts (character streaming), History.ts, TabComplete.ts'
     status: completed
   - id: filesystem
-    content: "Phase 5: Virtual filesystem — types, tree structure, path resolution, lazy content fetching from server"
+    content: 'Phase 5: Virtual filesystem — types, tree structure, path resolution, lazy content fetching from server'
     status: completed
   - id: commands
-    content: "Phase 6: Command system — registry, all bash commands (ls, cat, cd, pwd, clear, echo, whoami, history, help, man, rm), full grantham command with all flags"
+    content: 'Phase 6: Command system — registry, all bash commands (ls, cat, cd, pwd, clear, echo, whoami, history, help, man, rm), full grantham command with all flags'
     status: completed
   - id: markdown-renderer
-    content: "Phase 7: Markdown-to-terminal renderer (headings, bullets, bold, links, code, paragraphs)"
+    content: 'Phase 7: Markdown-to-terminal renderer (headings, bullets, bold, links, code, paragraphs)'
     status: completed
   - id: content
-    content: "Phase 8: Placeholder markdown content files (about, experience, projects, skills, education, contact)"
+    content: 'Phase 8: Placeholder markdown content files (about, experience, projects, skills, education, contact)'
     status: completed
   - id: build-assets
-    content: "Phase 9: Build configuration, favicon, static asset placeholders (avatar.jpg, resume.pdf)"
+    content: 'Phase 9: Build configuration, favicon, static asset placeholders (avatar.jpg, resume.pdf)'
     status: completed
   - id: polish
-    content: "Phase 10: Easter eggs, ghost text, error message verification, performance check"
+    content: 'Phase 10: Easter eggs, ghost text, error message verification, performance check'
     status: completed
 isProject: false
 ---

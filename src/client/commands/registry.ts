@@ -1,62 +1,71 @@
-import type { Terminal } from "../terminal/Terminal.ts";
+import type { Terminal } from '../terminal/Terminal.ts'
 
 export interface CommandContext {
-  terminal: Terminal;
-  args: string[];
+	terminal: Terminal
+	args: string[]
 }
 
-export type CommandHandler = (ctx: CommandContext) => Promise<void>;
+export type CommandHandler = (ctx: CommandContext) => Promise<void>
 
-interface CommandEntry {
-  handler: CommandHandler;
-  description: string;
-  hidden?: boolean;
+export interface CommandEntry {
+	handler: CommandHandler
+	description: string
+	hidden?: boolean
 }
 
-const CHAINING_PATTERNS = /[|&;]/;
+export interface CommandRegistry {
+	register(name: string, description: string, handler: CommandHandler, hidden?: boolean): void
+	getCommandNames(): string[]
+	getCommands(): Map<string, CommandEntry>
+	execute(raw: string, terminal: Terminal): Promise<void>
+}
 
-export class CommandRegistry {
-  private commands = new Map<string, CommandEntry>();
+const CHAINING_PATTERNS = /[|&;]/
 
-  register(name: string, description: string, handler: CommandHandler, hidden = false): void {
-    this.commands.set(name, { handler, description, hidden });
-  }
+export function createCommandRegistry(): CommandRegistry {
+	const commands = new Map<string, CommandEntry>()
 
-  getCommandNames(): string[] {
-    return [...this.commands.keys()];
-  }
+	return {
+		register(name: string, description: string, handler: CommandHandler, hidden = false): void {
+			commands.set(name, { handler, description, hidden })
+		},
 
-  getCommands(): Map<string, CommandEntry> {
-    return new Map([...this.commands].filter(([, e]) => !e.hidden));
-  }
+		getCommandNames(): string[] {
+			return [...commands.keys()]
+		},
 
-  async execute(raw: string, terminal: Terminal): Promise<void> {
-    if (CHAINING_PATTERNS.test(raw)) {
-      terminal.printError("Command chaining is not supported.");
-      return;
-    }
+		getCommands(): Map<string, CommandEntry> {
+			return new Map([...commands].filter(([, e]) => !e.hidden))
+		},
 
-    let parts = raw.split(/\s+/).filter(Boolean);
+		async execute(raw: string, terminal: Terminal): Promise<void> {
+			if (CHAINING_PATTERNS.test(raw)) {
+				terminal.printError('Command chaining is not supported.')
+				return
+			}
 
-    if (parts[0] === "sudo") {
-      parts = parts.slice(1);
-      if (!parts.length) {
-        terminal.printSpans([{ text: "usage: sudo [-h] command [arg ...]\n" }]);
-        return;
-      }
-    }
+			let parts = raw.split(/\s+/).filter(Boolean)
 
-    const name = parts[0];
-    const args = parts.slice(1);
+			if (parts[0] === 'sudo') {
+				parts = parts.slice(1)
+				if (!parts.length) {
+					terminal.printSpans([{ text: 'usage: sudo [-h] command [arg ...]\n' }])
+					return
+				}
+			}
 
-    if (!name) return;
+			const name = parts[0]
+			const args = parts.slice(1)
 
-    const entry = this.commands.get(name);
-    if (!entry) {
-      terminal.printError(`bash: ${name}: command not found`);
-      return;
-    }
+			if (!name) return
 
-    await entry.handler({ terminal, args });
-  }
+			const entry = commands.get(name)
+			if (!entry) {
+				terminal.printError(`bash: ${name}: command not found`)
+				return
+			}
+
+			await entry.handler({ terminal, args })
+		}
+	}
 }

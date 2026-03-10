@@ -1,178 +1,168 @@
-import type { History } from "./History.ts";
-import type { TabComplete } from "./TabComplete.ts";
-import type { OutputRenderer } from "./OutputRenderer.ts";
-import type { FileSystem } from "../filesystem/FileSystem.ts";
+import type { History } from './History.ts'
+import type { TabComplete } from './TabComplete.ts'
+import type { OutputRenderer } from './OutputRenderer.ts'
+import type { FileSystem } from '../filesystem/FileSystem.ts'
 
-export type CommandExecutor = (raw: string) => Promise<void>;
+export type CommandExecutor = (raw: string) => Promise<void>
 
-export class InputHandler {
-  private inputEl: HTMLSpanElement;
-  private cursorEl: HTMLSpanElement;
-  private hiddenInput: HTMLInputElement;
-  private history: History;
-  private tabComplete: TabComplete;
-  private renderer: OutputRenderer;
-  private fs: FileSystem;
-  private onCommand: CommandExecutor;
-  private onScroll: () => void;
-  private currentInput = "";
+export interface InputHandler {
+	focus(): void
+	setInput(text: string): void
+	getInput(): string
+	setPromptHandler(handler: ((value: string) => void) | null): void
+	disable(): void
+	enable(): void
+}
 
-  private promptHandler: ((value: string) => void) | null = null;
+export function createInputHandler(opts: {
+	inputEl: HTMLSpanElement
+	cursorEl: HTMLSpanElement
+	hiddenInput: HTMLInputElement
+	history: History
+	tabComplete: TabComplete
+	renderer: OutputRenderer
+	fs: FileSystem
+	onCommand: CommandExecutor
+	onScroll: () => void
+}): InputHandler {
+	const { inputEl, cursorEl, hiddenInput, history, tabComplete, renderer, fs, onCommand, onScroll } = opts
+	let currentInput = ''
+	let promptHandler: ((value: string) => void) | null = null
 
-  constructor(opts: {
-    inputEl: HTMLSpanElement;
-    cursorEl: HTMLSpanElement;
-    hiddenInput: HTMLInputElement;
-    history: History;
-    tabComplete: TabComplete;
-    renderer: OutputRenderer;
-    fs: FileSystem;
-    onCommand: CommandExecutor;
-    onScroll: () => void;
-  }) {
-    this.inputEl = opts.inputEl;
-    this.cursorEl = opts.cursorEl;
-    this.hiddenInput = opts.hiddenInput;
-    this.history = opts.history;
-    this.tabComplete = opts.tabComplete;
-    this.renderer = opts.renderer;
-    this.fs = opts.fs;
-    this.onCommand = opts.onCommand;
-    this.onScroll = opts.onScroll;
+	function render(): void {
+		inputEl.textContent = currentInput
+	}
 
-    this.hiddenInput.addEventListener("keydown", this.handleKeyDown);
-    this.hiddenInput.addEventListener("input", this.handleInput);
-  }
+	function handleKeyDown(e: KeyboardEvent): void {
+		if (renderer.isStreaming) {
+			e.preventDefault()
+			return
+		}
 
-  focus(): void {
-    this.hiddenInput.focus({ preventScroll: true });
-  }
+		onScroll()
 
-  setInput(text: string): void {
-    this.currentInput = text;
-    this.render();
-  }
+		if (e.key === 'Enter') {
+			e.preventDefault()
+			const value = currentInput
+			currentInput = ''
+			render()
 
-  getInput(): string {
-    return this.currentInput;
-  }
+			if (promptHandler) {
+				promptHandler(value)
+			} else {
+				history.push(value)
+				onCommand(value)
+			}
+			return
+		}
 
-  setPromptHandler(handler: ((value: string) => void) | null): void {
-    this.promptHandler = handler;
-  }
+		if (e.key === 'Backspace') {
+			e.preventDefault()
+			currentInput = currentInput.slice(0, -1)
+			render()
+			return
+		}
 
-  disable(): void {
-    this.cursorEl.style.display = "none";
-  }
+		if (e.key === 'ArrowUp') {
+			e.preventDefault()
+			if (promptHandler) return
+			const prev = history.prev()
+			if (prev !== null) {
+				currentInput = prev
+				render()
+			}
+			return
+		}
 
-  enable(): void {
-    this.cursorEl.style.display = "";
-  }
+		if (e.key === 'ArrowDown') {
+			e.preventDefault()
+			if (promptHandler) return
+			const next = history.next()
+			currentInput = next ?? ''
+			render()
+			return
+		}
 
-  private handleKeyDown = (e: KeyboardEvent): void => {
-    if (this.renderer.isStreaming) {
-      e.preventDefault();
-      return;
-    }
+		if (e.key === 'Tab') {
+			e.preventDefault()
+			if (promptHandler) return
+			const result = tabComplete.complete(currentInput, fs)
+			if (result.options) {
+				renderer.print([{ text: result.options.join('  ') }])
+			}
+			currentInput = result.completed
+			render()
+			return
+		}
 
-    this.onScroll();
+		if (e.ctrlKey && e.key === 'c') {
+			e.preventDefault()
+			if (promptHandler) {
+				promptHandler('\x03')
+				return
+			}
+			renderer.print([{ text: currentInput + '^C' }])
+			currentInput = ''
+			render()
+			onCommand('\x03')
+			return
+		}
 
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const value = this.currentInput;
-      this.currentInput = "";
-      this.render();
+		if (e.ctrlKey && e.key === 'l') {
+			e.preventDefault()
+			renderer.clear()
+			return
+		}
 
-      if (this.promptHandler) {
-        this.promptHandler(value);
-      } else {
-        this.history.push(value);
-        this.onCommand(value);
-      }
-      return;
-    }
+		if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+			e.preventDefault()
+			currentInput += e.key
+			render()
+			return
+		}
+	}
 
-    if (e.key === "Backspace") {
-      e.preventDefault();
-      this.currentInput = this.currentInput.slice(0, -1);
-      this.render();
-      return;
-    }
+	function handleInput(): void {
+		if (renderer.isStreaming) {
+			hiddenInput.value = ''
+			return
+		}
+		onScroll()
+		const value = hiddenInput.value
+		if (value) {
+			currentInput += value
+			hiddenInput.value = ''
+			render()
+		}
+	}
 
-    if (e.key === "ArrowUp") {
-      e.preventDefault();
-      if (this.promptHandler) return;
-      const prev = this.history.prev();
-      if (prev !== null) {
-        this.currentInput = prev;
-        this.render();
-      }
-      return;
-    }
+	hiddenInput.addEventListener('keydown', handleKeyDown)
+	hiddenInput.addEventListener('input', handleInput)
 
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      if (this.promptHandler) return;
-      const next = this.history.next();
-      this.currentInput = next ?? "";
-      this.render();
-      return;
-    }
+	return {
+		focus(): void {
+			hiddenInput.focus({ preventScroll: true })
+		},
 
-    if (e.key === "Tab") {
-      e.preventDefault();
-      if (this.promptHandler) return;
-      const result = this.tabComplete.complete(this.currentInput, this.fs);
-      if (result.options) {
-        this.renderer.print([{ text: result.options.join("  ") }]);
-      }
-      this.currentInput = result.completed;
-      this.render();
-      return;
-    }
+		setInput(text: string): void {
+			currentInput = text
+			render()
+		},
 
-    if (e.ctrlKey && e.key === "c") {
-      e.preventDefault();
-      if (this.promptHandler) {
-        this.promptHandler("\x03");
-        return;
-      }
-      this.renderer.print([{ text: this.currentInput + "^C" }]);
-      this.currentInput = "";
-      this.render();
-      this.onCommand("\x03");
-      return;
-    }
+		getInput(): string {
+			return currentInput
+		},
 
-    if (e.ctrlKey && e.key === "l") {
-      e.preventDefault();
-      this.renderer.clear();
-      return;
-    }
+		setPromptHandler(handler: ((value: string) => void) | null): void {
+			promptHandler = handler
+		},
 
-    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-      e.preventDefault();
-      this.currentInput += e.key;
-      this.render();
-      return;
-    }
-  };
+		disable(): void {
+			cursorEl.style.display = 'none'
+		},
 
-  private handleInput = (): void => {
-    if (this.renderer.isStreaming) {
-      this.hiddenInput.value = "";
-      return;
-    }
-    this.onScroll();
-    const value = this.hiddenInput.value;
-    if (value) {
-      this.currentInput += value;
-      this.hiddenInput.value = "";
-      this.render();
-    }
-  };
-
-  private render(): void {
-    this.inputEl.textContent = this.currentInput;
-  }
+		enable(): void {
+			cursorEl.style.display = ''
+		}
+	}
 }
